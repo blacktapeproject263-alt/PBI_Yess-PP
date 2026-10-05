@@ -33,6 +33,7 @@ PBI_Yess-PP/
 │       ├── Purchases.tmdl              # Закупки товаров
 │       └── dimCustomers.tmdl           # Справочник клиентов
 ├── 📂 docs/                            # База знаний и проектная документация
+│   ├── 📄 GITHUB_SETUP.md              # Инструкция по глобальной авторизации GitHub для всех проектов
 │   ├── 📄 Model_Documentation.md       # Полный справочник метаданных и формул DAX
 │   ├── 📄 Qlik_to_PowerBI_Guide.md     # Пошаговое руководство по переходу с Qlik Sense на Power BI
 │   ├── 📄 architecture.md              # Архитектурное описание схемы «Звезда»
