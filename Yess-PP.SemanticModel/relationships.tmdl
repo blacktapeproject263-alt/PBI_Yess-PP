@@ -1,0 +1,73 @@
+relationship d2ccb6a4-7ed9-4627-acf8-06cc4bcf17e5
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Sales.Time
+	toColumn: LocalDateTable_ad47bb57-65aa-4e25-84c5-ee401b126434.Date
+
+relationship cf3eeb95-aca2-4ab9-9d1e-888591766ac6
+	fromColumn: Sales.Store
+	toColumn: Stores.'Store ID'
+
+relationship 6f7e7b7e-33ad-4e04-a260-253c121dc911
+	fromColumn: Sales.Product
+	toColumn: Products.'Product Name'
+
+relationship 64a311ad-2bd2-4deb-9f9a-1587d1b2d8d9
+	fromColumn: SalesPlan.'Store ID'
+	toColumn: Stores.'Store ID'
+
+relationship 249e31a6-dffa-4827-80bf-295cdab0e37d
+	fromColumn: Purchases.Product
+	toColumn: Products.'Product Name'
+
+relationship 88ac2402-2ccb-4399-a7c9-f3d56ce9b9fa
+	fromColumn: Purchases.Store
+	toColumn: Stores.'Store ID'
+
+relationship c0954761-1b63-4d6f-8ef3-7e31e76d9f8d
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Stores.DateOpened
+	toColumn: LocalDateTable_ce0ebe41-2914-427c-aec3-8ed7430b9a21.Date
+
+relationship 2b468322-5941-4781-a7df-eab508cad9d7
+	fromColumn: Sales.CustomerID
+	toColumn: dimCustomers.CustomerID
+
+relationship 3e036449-14c5-4399-8159-1820ca607b15
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Calendar.Date
+	toColumn: LocalDateTable_d7722dd6-4c37-433e-885b-f572b9483913.Date
+
+relationship 237fbf4a-3bd3-463c-8089-b8bdd32e59fb
+	fromColumn: Sales.Date
+	toColumn: Calendar.Date
+
+relationship d2565389-4520-471c-a808-215e1435a7ab
+	fromColumn: OPEX.Date
+	toColumn: Calendar.Date
+
+relationship f1814e0f-0f1d-4167-a39b-d26258b7e738
+	fromColumn: SalesPlan.Date
+	toColumn: Calendar.Date
+
+relationship c34b57c6-d44a-490d-b096-d859e795625e
+	fromColumn: Operations.Store
+	toColumn: Stores.'Store ID'
+
+relationship 0c223cb8-a864-4637-adb6-4d811772cac4
+	fromColumn: Operations.Date
+	toColumn: Calendar.Date
+
+relationship 6fa20e1b-93b2-4873-bb37-3e4ba2f56d7b
+	isActive: false
+	fromColumn: Sales.'Shipment date'
+	toColumn: Calendar.Date
+
+relationship 3b813e8b-79a7-4456-b84c-c434f866989e
+	fromColumn: Purchases.Date
+	toColumn: Calendar.Date
+
+relationship 322a91e1-6e64-4114-8970-a9e402004732
+	joinOnDateBehavior: datePartOnly
+	fromColumn: currency.date
+	toColumn: LocalDateTable_ee1f8775-650b-451e-95f4-192f5d43fed4.Date
+

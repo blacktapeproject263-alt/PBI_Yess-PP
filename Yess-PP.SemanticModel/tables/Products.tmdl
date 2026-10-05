@@ -1,0 +1,107 @@
+/// Справочник товаров (измерение): категория, подкатегория, бренд, цвет, производитель и весовая категория.
+table Products
+	lineageTag: 96628157-4a83-4f46-a955-fc7de24d6e83
+
+	/// Динамический заголовок выбранного в фильтре/срезе товара.
+	measure ВыбранТовар = "Детали по: " & SELECTEDVALUE(Products[Product Name], "товар не выбран")
+		lineageTag: 71340a21-0e25-4202-a177-7e3d29769209
+
+	column 'Product Name'
+		dataType: string
+		lineageTag: 5ab6a6ff-8a75-4085-b02d-81dd61627411
+		summarizeBy: none
+		sourceColumn: Product Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Brand
+		dataType: string
+		lineageTag: f95987a7-b288-429c-b9f4-99e7ebf8c9a9
+		summarizeBy: none
+		sourceColumn: Brand
+
+		annotation SummarizationSetBy = Automatic
+
+	column Subcategory
+		dataType: string
+		lineageTag: 88a03fff-6611-43e6-a249-561ac7a31f58
+		summarizeBy: none
+		sourceColumn: Subcategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: 11912222-9e99-4ee2-bb52-b40cb1a6c839
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Weight (kg)'
+		dataType: double
+		lineageTag: 6dfce2c8-b30a-49e1-b968-de6bcc18ea71
+		summarizeBy: sum
+		sourceColumn: Weight (kg)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Color
+		dataType: string
+		lineageTag: f6d8b4a7-145a-44c3-8366-8eb90abf3f35
+		summarizeBy: none
+		sourceColumn: Color
+
+		annotation SummarizationSetBy = Automatic
+
+	column Manufacturer
+		dataType: string
+		lineageTag: f9fb6a06-c327-41ff-8352-94e06d53271f
+		summarizeBy: none
+		sourceColumn: Manufacturer
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Weight Category'
+		dataType: string
+		lineageTag: 754b01da-4fae-45e5-91be-5d0232689450
+		summarizeBy: none
+		sourceColumn: Weight Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type
+		dataType: string
+		lineageTag: 0364bf7c-f57b-43e3-9b42-603f211d5e78
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Products-cd1ec7bc-85fb-4ef0-ad6e-d61337cbc9eb = m
+		mode: import
+		source =
+				let
+				    Источник = Excel.Workbook(File.Contents("C:\Users\B.Yessenova\Desktop\MS Power BI\W1\ElectronicsCompanyData.xlsx"), null, true),
+				    Products_Sheet = Источник{[Item="Products",Kind="Sheet"]}[Data],
+				    #"Повышенные заголовки" = Table.PromoteHeaders(Products_Sheet, [PromoteAllScalars=true]),
+				    #"Измененный тип" = Table.TransformColumnTypes(#"Повышенные заголовки",{{"Product Name", type text}, {"Brand", type text}, {"Subcategory", type text}, {"Category", type text}, {"Weight (kg)", type number}, {"Color", type text}, {"Manufacturer", type text}}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Измененный тип", "Weight Category", each if [#"Weight (kg)"] <= 1 then "light" else if [#"Weight (kg)"] <= 5 then "moderate" else if [#"Weight (kg)"] <= 10 then "heavy" else "very heavy"),
+				    #"Filtered Rows" = Table.SelectRows(#"Added Conditional Column", each true),
+				    #"Trimmed Text" = Table.TransformColumns(#"Filtered Rows",{{"Product Name", Text.Trim, type text}}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Trimmed Text", "Product Name", "Product Name - Copy"),
+				    #"Extracted Text Before Delimiter" = Table.TransformColumns(#"Duplicated Column", {{"Product Name - Copy", each Text.BeforeDelimiter(_, ","), type text}}),
+				    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Extracted Text Before Delimiter", {{"Product Name - Copy", each Text.AfterDelimiter(_, "Type"), type text}}),
+				    #"Trimmed Text1" = Table.TransformColumns(#"Extracted Text After Delimiter",{{"Product Name - Copy", Text.Trim, type text}}),
+				    #"Inserted Merged Column" = Table.AddColumn(#"Trimmed Text1", "Merged", each Text.Combine({"Type ", [#"Product Name - Copy"]}), type text),
+				    #"Removed Columns" = Table.RemoveColumns(#"Inserted Merged Column",{"Product Name - Copy"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Merged", "Type"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

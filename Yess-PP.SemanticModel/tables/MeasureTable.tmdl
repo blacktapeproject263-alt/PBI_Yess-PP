@@ -1,0 +1,42 @@
+/// Выделенная таблица для хранения сквозных расчетных мер (остатки, накопительные итоги, выбор валюты).
+table MeasureTable
+	lineageTag: a7e8e978-9639-43ec-9382-e3db2752c798
+
+	/// Суммарное количество проданного товара нарастающим итогом на конец выбранного периода.
+	measure 'Кол-во продаж накопительно' = ```
+			CALCULATE([2. SalesQuantity], FILTER(all('Calendar'), 'Calendar'[Date] <= max('Calendar'[Date]))) 
+			```
+		formatString: 0
+		lineageTag: 5d3d7334-7467-43f7-b045-4216c65db471
+
+	measure 'Макс дата в контексте' = max('Calendar'[Date])
+		formatString: General Date
+		lineageTag: 52d93633-42e7-4bb9-a7b6-27a8a784028b
+
+	/// Суммарное количество закупленного товара нарастающим итогом на конец выбранного периода.
+	measure 'Кол-во закуплено накопительно' = CALCULATE([Purchase Quantity], FILTER(all('Calendar'), 'Calendar'[Date] <= max('Calendar'[Date])))
+		lineageTag: 01a61e68-fc1e-4904-a4fc-493a158b60af
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Расчетный товарный остаток на складах на дату среза (закупки минус продажи).
+	measure Остатки = [Кол-во закуплено накопительно] - [Кол-во продаж накопительно]
+		lineageTag: 98689271-d2ab-4011-b649-f24fdd138f2d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure SelectCurr = "Выбор валют:"
+		lineageTag: 6f09f274-eaf6-4ab5-b64c-a982d558b923
+
+	partition MeasureTable-dde8a185-b0a0-4461-8f0f-a1c344e43f9c = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

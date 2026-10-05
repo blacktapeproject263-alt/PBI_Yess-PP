@@ -1,0 +1,108 @@
+/// Фактические и плановые операционные расходы по магазинам и категориям затрат.
+table Operations
+	lineageTag: dc92efc2-3f20-4178-91de-4e5d6e1061f2
+
+	/// Фактические операционные расходы магазинов.
+	measure '1.ActualCost' = SUM(Operations[Actual Cost])
+		lineageTag: 8f89f1c2-61ba-4192-97da-e789883c3aaa
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Плановые операционные расходы магазинов.
+	measure '2.PlannedCost' = SUM(Operations[Planned Cost])
+		lineageTag: 0e46e72c-524f-4bab-af3d-dcb1a2486b0f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Процент освоения операционного бюджета (факт к плану).
+	measure '3.ActualCost%' = ```
+			[1.ActualCost]/[2.PlannedCost] 
+			```
+		formatString: 0%;-0%;0%
+		lineageTag: 011fab59-08b3-4c49-a3af-b60f9ccc75ee
+
+		changedProperty = FormatString
+
+	/// Чистая маржа: валовая прибыль за вычетом операционных расходов.
+	measure '4.NetMargin' = Sales[4. Sales]-Sales[5.COGS] - Operations[1.ActualCost]
+		lineageTag: 44d4f6dc-26d1-45a0-8462-35aeab6ce055
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Чистая рентабельность продаж (%): отношение чистой маржи к выручке.
+	measure '5.MarginNet%' = [4.NetMargin]/Sales[4. Sales]
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 44673896-f901-4b69-9d27-a9cdbc094071
+
+		changedProperty = FormatString
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: d6c9a932-f2b1-4bdb-8618-7de6b9e2fd3a
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Store
+		dataType: int64
+		formatString: 0
+		lineageTag: 777ea43b-3581-48fd-bdfd-222cd159fc7c
+		summarizeBy: none
+		sourceColumn: Store
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Spending Category'
+		dataType: string
+		lineageTag: f9f4162c-fbaa-4644-8bb1-243af5468f32
+		summarizeBy: none
+		sourceColumn: Spending Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Planned Cost'
+		dataType: double
+		lineageTag: 597fcffb-79da-4de9-8987-f030f2bf75b6
+		summarizeBy: sum
+		sourceColumn: Planned Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Actual Cost'
+		dataType: double
+		lineageTag: 0d4951e9-7093-49a2-b468-7bac3adcf4c4
+		summarizeBy: sum
+		sourceColumn: Actual Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Operations-0fb481ba-41b2-4dc6-b198-5e25a394edbf = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\B.Yessenova\Desktop\MS Power BI\W3\Operations.csv"),[Delimiter=",", Columns=5, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Date", type date}, {"Store", Int64.Type}, {"Spending Category", type text}, {"Planned Cost", Int64.Type}, {"Actual Cost", type text}}),
+				    #"Split Column by Delimiter" = Table.SplitColumn(Table.TransformColumnTypes(#"Changed Type", {{"Date", type text}}, "ru-RU"), "Date", Splitter.SplitTextByDelimiter(".", QuoteStyle.Csv), {"Date.1", "Date.2", "Date.3"}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Split Column by Delimiter",{{"Date.1", Int64.Type}, {"Date.2", Int64.Type}, {"Date.3", Int64.Type}}),
+				    #"Merged Columns" = Table.CombineColumns(Table.TransformColumnTypes(#"Changed Type1", {{"Date.2", type text}, {"Date.1", type text}, {"Date.3", type text}}, "ru-RU"),{"Date.2", "Date.1", "Date.3"},Combiner.CombineTextByDelimiter(".", QuoteStyle.None),"Date"),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Merged Columns",{{"Date", type date}, {"Store", Int64.Type}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Changed Type2", each ([Store] <> null and [Store] <> "")),
+				    #"Changed Type3" = Table.TransformColumnTypes(#"Filtered Rows",{{"Planned Cost", type number}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Changed Type3",".",",",Replacer.ReplaceText,{"Actual Cost"}),
+				    #"Changed Type4" = Table.TransformColumnTypes(#"Replaced Value",{{"Actual Cost", type number}})
+				in
+				    #"Changed Type4"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

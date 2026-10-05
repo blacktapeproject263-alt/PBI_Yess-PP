@@ -1,0 +1,63 @@
+table Employees
+	lineageTag: b4063f61-e5b7-4b0f-8b31-919457a14909
+
+	column EmployeeID
+		dataType: int64
+		formatString: 0
+		lineageTag: 1b99f65b-d5e1-4e5a-9a12-f3888765d7bd
+		summarizeBy: count
+		sourceColumn: EmployeeID
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeePhoto
+		dataType: string
+		lineageTag: 5de66af6-d13e-4f6a-89c3-b77d7a52a8da
+		dataCategory: ImageUrl
+		summarizeBy: none
+		sourceColumn: EmployeePhoto
+
+		annotation SummarizationSetBy = Automatic
+
+	column DepartmentID
+		dataType: int64
+		formatString: 0
+		lineageTag: 75cf2bf5-aeb4-4520-b914-c0394b23ed49
+		summarizeBy: count
+		sourceColumn: DepartmentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column DepartmentName
+		dataType: string
+		lineageTag: eab44487-f901-43fa-a320-4d8c8d26df62
+		summarizeBy: none
+		sourceColumn: DepartmentName
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeeName
+		dataType: string
+		lineageTag: 8c025d71-31bf-4b0c-a847-341c285bcc39
+		summarizeBy: none
+		sourceColumn: EmployeeName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Employees-48f3ffca-153b-4b35-8ce6-69b697795c8a = m
+		mode: import
+		queryGroup: 'Employee Group'
+		source =
+				let
+				    Source = Table.NestedJoin(Employee, {"DepartmentID"}, Department, {"DepartmentID"}, "Department", JoinKind.LeftOuter),
+				    #"Expanded Department" = Table.ExpandTableColumn(Source, "Department", {"DepartmentName"}, {"DepartmentName"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Expanded Department", {"EmployeeID"}, EmployeeName, {"EmployeeID"}, "Table (2)", JoinKind.LeftOuter),
+				    #"Expanded Table (2)" = Table.ExpandTableColumn(#"Merged Queries", "Table (2)", {"Column1"}, {"Column1"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Expanded Table (2)",{{"Column1", "EmployeeName"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

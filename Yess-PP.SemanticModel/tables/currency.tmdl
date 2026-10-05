@@ -1,0 +1,40 @@
+table currency
+	lineageTag: 2c2ebfcc-abe6-4f4f-a91c-1b02f547a89d
+
+	column date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 717931f9-fb6e-4b38-a0a5-3d303cb59135
+		summarizeBy: none
+		sourceColumn: date
+
+		variation Variation
+			isDefault
+			relationship: 322a91e1-6e64-4114-8970-a9e402004732
+			defaultHierarchy: LocalDateTable_ee1f8775-650b-451e-95f4-192f5d43fed4.'Иерархия дат'
+
+		annotation SummarizationSetBy = Automatic
+
+	column rate
+		dataType: int64
+		formatString: 0
+		lineageTag: 3e2aacd2-986c-4f89-b76b-2ca8a699528b
+		summarizeBy: sum
+		sourceColumn: rate
+
+		annotation SummarizationSetBy = Automatic
+
+	partition currency-24489285-0170-4635-bf4c-9fca72b236ac = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Databases("bidatabase.ctoqi0ygecd7.eu-central-1.rds.amazonaws.com"),
+				    ElectronicsCompany = Source{[Name="ElectronicsCompany"]}[Data],
+				    dbo_currency = ElectronicsCompany{[Schema="dbo",Item="currency"]}[Data]
+				in
+				    dbo_currency
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

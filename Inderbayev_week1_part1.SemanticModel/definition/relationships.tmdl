@@ -1,0 +1,23 @@
+relationship 1eafd07b-3fff-487a-9f55-9df823fc28ba
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Sales.Date
+	toColumn: LocalDateTable_ed024a33-3156-4ad9-9c0f-34ae00069c97.Date
+
+relationship 7585a683-ca33-4e90-8546-ad802ed9e951
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Sales.Time
+	toColumn: LocalDateTable_39c0e9e2-72f1-4cd7-848b-baaae2405cbc.Date
+
+relationship 9415899f-3f22-4d0b-b007-f35704301ea2
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Sales.'Shipment date'
+	toColumn: LocalDateTable_7447bb62-c1f2-43bf-9836-3f0e6c6cf618.Date
+
+relationship 27c68b89-087f-46e6-a201-422b05212270
+	fromColumn: Sales.Store
+	toColumn: Stores.'Store ID'
+
+relationship 1173a1d5-d445-4b2b-b753-21428f5d104a
+	fromColumn: Sales.Product
+	toColumn: Products.'Product Name'
+

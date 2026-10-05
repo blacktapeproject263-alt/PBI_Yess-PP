@@ -1,0 +1,91 @@
+table Stores
+	lineageTag: 205643ee-e37b-42bf-978b-e396841a6edd
+
+	column 'Store ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 40cde9d4-7d60-4d53-b909-dcccfda4ce3d
+		summarizeBy: none
+		sourceColumn: Store ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Store Name'
+		dataType: string
+		lineageTag: 85ffc3b6-ad1d-4d50-8d1e-6fe49a3497fb
+		summarizeBy: none
+		sourceColumn: Store Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column City
+		dataType: string
+		lineageTag: 3ff08eb6-af70-4b38-9383-4603da42b34d
+		summarizeBy: none
+		sourceColumn: City
+
+		annotation SummarizationSetBy = Automatic
+
+	column Latitude
+		dataType: double
+		lineageTag: 87e1c5a8-d866-4507-a5d7-a83b695bbefa
+		summarizeBy: none
+		sourceColumn: Latitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Longitude
+		dataType: double
+		lineageTag: 6449e21c-993f-49dd-92c9-6b30e48619dd
+		summarizeBy: none
+		sourceColumn: Longitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Area
+		dataType: int64
+		formatString: 0
+		lineageTag: 80e1d451-71f7-4885-ac90-791c44a251dd
+		summarizeBy: none
+		sourceColumn: Area
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Number of sales people'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3873765e-94f9-4d98-ac33-9ae0be8711f1
+		summarizeBy: none
+		sourceColumn: Number of sales people
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Price per square meter'
+		dataType: double
+		lineageTag: 981f555d-bd48-410e-9406-f6afbb6b96e9
+		summarizeBy: none
+		sourceColumn: Price per square meter
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Stores-09c66cb4-ec23-41ce-8c7d-184a88073e68 = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\Users\root\Desktop\PBI kurs\Week1\ElectronicsCompanyData.xlsx"), null, true),
+				    Stores_Sheet = Source{[Item="Stores",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(Stores_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Store ID", Int64.Type}, {"Store Name", type text}, {"City", type text}, {"Latitude", type number}, {"Longitude", type number}, {"Area", Int64.Type}, {"Number of sales people", Int64.Type}, {"Price per square meter", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,343 @@
+/// Таблица фактов фактических продаж товаров. Содержит строки чеков, даты, количество, цену за единицу, себестоимость, клиента и магазин.
+table Sales
+	lineageTag: b3d94f48-d914-4ec2-903a-0d8d361e7f38
+
+	/// Операционная прибыль: выручка от продаж за вычетом операционных расходов (OPEX).
+	measure 'Sales - OPEX' = [Sales] - SUM(OPEX[OPEX])
+		formatString: 0
+		lineageTag: d1fc5df1-203a-4d3c-890c-61ebdf51bf6f
+
+	/// Общая выручка от продаж (рассчитанная построчно как цена умножить на количество).
+	measure Sales = ```
+			SUMX(Sales, Sales[Price $/each] * Sales[Quantity]) 
+			```
+		formatString: #,0
+		lineageTag: 51dfd25f-a2e9-4786-8757-347525c0cd50
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	/// Общее количество проданных единиц товара.
+	measure '2. SalesQuantity' = sum(Sales[Quantity])
+		formatString: 0
+		lineageTag: 20c96b58-69ee-4325-90b9-46bfa08cdd90
+
+	/// Общая сумма фактических продаж в базовой валюте ($).
+	measure '4. Sales' = SUMX(Sales, Sales[Price $/each] *Sales[Quantity])
+		formatString: #,0.00
+		lineageTag: 1407a7a8-bb69-4d4e-93c3-0f174a2939d0
+
+		changedProperty = FormatString
+
+	/// Количество уникальных покупателей, совершивших покупки за выбранный период.
+	measure '1. CustomerCount' = DISTINCTCOUNT(Sales[CustomerID])
+		formatString: 0
+		lineageTag: 0292fe91-32a1-4a17-a5d4-1622aad561be
+
+	/// Себестоимость реализованной продукции (Cost of Goods Sold).
+	measure '5.COGS' = SUMX(Sales, Sales[Quantity] * Sales[Cost of Goods])
+		formatString: #,0.00
+		lineageTag: aff8e58b-aa99-4f9c-ad09-89e46b541fb7
+
+		changedProperty = FormatString
+
+	/// Валовая прибыль (маржа) в абсолютном выражении: выручка за вычетом себестоимости.
+	measure '6.Margin' = [4. Sales]-[5.COGS]
+		formatString: #,0
+		lineageTag: 42d01bd0-e0d0-4243-a68e-dde7f259771b
+
+		changedProperty = FormatString
+
+	/// Рентабельность продаж (валовая маржа, %): отношение маржи к выручке.
+	measure '7.margin%' = [6.Margin]/[4. Sales]
+		formatString: 0%;-0%;0%
+		lineageTag: c7be9958-4ef6-4a9b-868a-d84d0c67976c
+
+		changedProperty = FormatString
+
+	/// Альтернативный автономный расчет рентабельности продаж через переменные (VAR).
+	measure '8.Margin%' = ```
+			VAR SalesTotal = SUMX(Sales, Sales[Price $/each]* Sales[Quantity])
+			VAR COGS = SUMX(Sales, Sales[Cost of goods] *Sales[Quantity]) 
+			VAR Margin = SalesTotal - COGS
+			return Margin / SalesTotal
+			```
+		formatString: 0%;-0%;0%
+		lineageTag: 3500c8eb-1078-46b9-beb5-182f591e4dc9
+
+		changedProperty = FormatString
+
+	/// Выручка за предыдущий календарный месяц.
+	measure '91.salesPrevMonth' = CALCULATE([4. Sales], PREVIOUSMONTH('Calendar'[Date]))
+		formatString: 0
+		lineageTag: 4b7ffcb1-a856-499f-b31a-0a7f2a7bf2fa
+
+	/// Выручка за аналогичный период прошлого года (Same Period Last Year).
+	measure '92.SalesSPLY' = CALCULATE([4. Sales], SAMEPERIODLASTYEAR('Calendar'[Date]))
+		formatString: 0
+		lineageTag: 069645c5-b82e-4703-b307-9d8c543ff03c
+
+	/// Накопительные продажи с начала календарного года по текущую дату (Year-To-Date).
+	measure '93. Sales YTD' = CALCULATE([4. Sales], DATESYTD('Calendar'[Date]))
+		formatString: 0
+		lineageTag: c5377bbd-6270-4507-8a35-466774527655
+
+	/// Накопительные продажи с начала финансового года (со смещением от 30 июня).
+	measure '94. Sales FYTD' = CALCULATE([4. Sales], DATESYTD('Calendar'[Date], "6-30"))
+		formatString: 0
+		lineageTag: 0997f47d-f4e1-4b7b-8f91-05bf02f8d046
+
+	/// Продажи за период два месяца назад относительно текущего фильтра дат.
+	measure '95. Sales2MonthAgo' = CALCULATE([4. Sales], DATEADD('Calendar'[Date], -2, MONTH))
+		formatString: 0
+		lineageTag: dcb04e63-477c-4fdb-831a-0324c058c9d8
+
+	/// Процент выполнения плана продаж (отношение фактических продаж к плану).
+	measure PlanFact% = DIVIDE([4. Sales], [1.SalesPlan], 0)
+		formatString: 0%;-0%;0%
+		lineageTag: 8fb69763-e972-4cd7-9281-c9a3b6f9a50e
+
+		changedProperty = FormatString
+
+	measure '101.AveragePrice' = AVERAGE(Sales[Price $/each])
+		lineageTag: 266f3b36-2f31-4b0b-8a4a-13efae0cdf92
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '102.AveragePurchPrice' = AVERAGE(Sales[Cost of goods])
+		lineageTag: 0ecfa6fe-7634-4be2-b631-8acc3373d7e7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '103.DiffPrice' = Sales[101.AveragePrice]-sales[102.AveragePurchPrice]
+		lineageTag: 1f0cb199-60f7-466c-b2e7-60428ebda376
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '104.DifArea' = max(Stores[Area]) - min(Stores[Area])
+		formatString: 0
+		lineageTag: 60ae9b2a-4325-4651-ad44-0b082ef49afe
+
+	measure '96. Red Sales' = CALCULATE([4. Sales], FILTER(Products, Products[Color] = "Red"))
+		formatString: 0
+		lineageTag: fc319100-cd09-45e7-8878-18703e20bc22
+
+	measure '97. Sales All' = CALCULATE([4. Sales], all(Products))
+		formatString: 0
+		lineageTag: 42ae4a2e-39f9-472d-9540-99a50e33d40e
+
+	measure '98.SalesAllColor' = CALCULATE(Sales[4. Sales], all(Products[Color]))
+		formatString: 0
+		lineageTag: 9bfcaaa4-ea94-40ff-b225-108ff1c9013d
+
+	/// Доля продаж выбранного товара или группы в общем объеме продаж компании.
+	measure '981. Sales Share' = DIVIDE([4. Sales],[97. Sales All], 0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: f76ca3b7-eda9-46b9-9611-7e2ebde172ef
+
+		changedProperty = FormatString
+
+	/// Доля продаж конкретного цвета в объеме продаж категории товаров.
+	measure '982. Color Share in Category' = DIVIDE( [4. Sales], [98.SalesAllColor],0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: edae4021-3ec9-4cf9-b764-804ce305458c
+
+		changedProperty = FormatString
+
+	/// Количество отгруженного товара с использованием альтернативной связи по дате отгрузки.
+	measure '983.ShippedQuantity' = CALCULATE([2. SalesQuantity], USERELATIONSHIP('Calendar'[Date], Sales[Shipment date]))
+		formatString: #,0
+		lineageTag: ad81653f-b473-4478-b7d0-cf2dec9e762c
+
+		changedProperty = FormatString
+
+	/// Процент отгрузки: доля отгруженных единиц от общего проданного количества.
+	measure '984. % Shipped' = DIVIDE( [983.ShippedQuantity], [2. SalesQuantity],0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 6dbe8625-f7e6-44df-ac04-961be3145d83
+
+		changedProperty = FormatString
+
+	/// Продажи в национальной валюте (тенге, KZT) по курсу на дату операции.
+	measure '41. Sales KZT' = sumx(Sales, Sales[Price $/each] * Sales[Quantity] * RELATED('Calendar'[KZT]))
+		formatString: #,0
+		lineageTag: 051a32e8-6da7-475b-8d05-7cfa8f49ed62
+
+		changedProperty = FormatString
+
+	/// Мультивалютная выручка с динамическим переключением валюты отображения.
+	measure '42. Sales Multicurrency' = if(SELECTEDVALUE(dimCurrency[symbol]) = "$", [4. Sales], [41. Sales KZT])
+		formatString: #,0
+		lineageTag: b8c4f017-32ca-4b10-a907-bbf678441e2a
+
+		changedProperty = FormatString
+
+	/// Средний чек: выручка от продаж, деленная на количество уникальных чеков.
+	measure 'x1.Ср Чек' = [4. Sales] / DISTINCTCOUNT(Sales[Receipt Number])
+		formatString: #,0
+		lineageTag: 4da07b33-40cc-44f6-994d-66ab3167e0f6
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure '99 Sales What-If' = [4. Sales] * (1+[Sales Mult Value]/100)
+		lineageTag: 245b6afc-de56-4396-99d2-98cc8c39ed64
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '61 Margin What-If' = [99 Sales What-If]- [5.COGS]
+		lineageTag: 7b11f910-a568-4bbc-9d06-bf3e5aa602af
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Receipt Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6dfa03bb-c1e0-41a4-ac52-eebbc5e904c3
+		summarizeBy: sum
+		sourceColumn: Receipt Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 87f45e22-7e9d-46f0-814f-d0ea6bde6c64
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 625c73c6-66c3-4dc6-9939-ab4cedc832b0
+		summarizeBy: none
+		sourceColumn: Time
+
+		variation Изменение
+			isDefault
+			relationship: d2ccb6a4-7ed9-4627-acf8-06cc4bcf17e5
+			defaultHierarchy: LocalDateTable_ad47bb57-65aa-4e25-84c5-ee401b126434.'Иерархия дат'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Product
+		dataType: string
+		lineageTag: 5014a722-ddc8-4989-b348-16ad295ce24a
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: int64
+		formatString: 0
+		lineageTag: b0ee1abd-760d-4438-a497-c76a68dc0e97
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Price $/each'
+		dataType: int64
+		formatString: 0
+		lineageTag: d2c4762d-a7a7-4b89-ac56-c0f81f06c53c
+		summarizeBy: sum
+		sourceColumn: Price $/each
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Payment Type (cash / credit)'
+		dataType: string
+		lineageTag: 214711ef-d0de-4b01-a5ca-a8226f8b54b6
+		summarizeBy: none
+		sourceColumn: Payment Type (cash / credit)
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerID
+		dataType: int64
+		formatString: 0
+		lineageTag: ee54781c-3a10-4f51-bcbd-a17d959e6d7e
+		summarizeBy: none
+		sourceColumn: CustomerID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Store
+		dataType: int64
+		formatString: 0
+		lineageTag: fe94b546-44f5-4117-8402-4923009f570b
+		summarizeBy: none
+		sourceColumn: Store
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cost of goods'
+		dataType: int64
+		formatString: 0
+		lineageTag: c48cfff4-daca-403d-9c36-91ab322dea5f
+		summarizeBy: sum
+		sourceColumn: Cost of goods
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Shipment date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: ba2a7c95-ac3f-43ea-bd1f-8971ea0e16cc
+		summarizeBy: none
+		sourceColumn: Shipment date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Type
+		dataType: string
+		lineageTag: 9d696916-6899-4fc6-9ce1-5cbbae62e93d
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Sales-ab0ba0f5-1de7-401b-bad4-c87d5e3cd86b = m
+		mode: import
+		source =
+				let
+				    Источник = Excel.Workbook(File.Contents("C:\Users\B.Yessenova\Desktop\MS Power BI\W1\ElectronicsCompanyData.xlsx"), null, true),
+				    Sales_Sheet = Источник{[Item="Sales",Kind="Sheet"]}[Data],
+				    #"Повышенные заголовки" = Table.PromoteHeaders(Sales_Sheet, [PromoteAllScalars=true]),
+				    #"Измененный тип" = Table.TransformColumnTypes(#"Повышенные заголовки",{{"Receipt Number", Int64.Type}, {"Date", type date}, {"Time", type datetime}, {"Product", type text}, {"Quantity", Int64.Type}, {"Price $/each", Int64.Type}, {"Total", Int64.Type}, {"Payment Type (cash / credit)", type text}, {"Customer", type text}, {"Store", Int64.Type}, {"Cost of goods", Int64.Type}, {"Shipment date", type date}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Измененный тип",{{"Total", type number}}),
+				    #"Trimmed Text" = Table.TransformColumns(#"Changed Type",{{"Product", Text.Trim, type text}}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Trimmed Text", "Product", "Product - Copy"),
+				    #"Inserted Text Between Delimiters" = Table.AddColumn(#"Duplicated Column", "Text Between Delimiters", each Text.BetweenDelimiters([#"Product - Copy"], " ", ","), type text),
+				    #"Replaced Value" = Table.ReplaceValue(#"Inserted Text Between Delimiters","Drive","",Replacer.ReplaceText,{"Text Between Delimiters"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","Watch","",Replacer.ReplaceText,{"Text Between Delimiters"}),
+				    #"Trimmed Text1" = Table.TransformColumns(#"Replaced Value1",{{"Text Between Delimiters", Text.Trim, type text}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Trimmed Text1", each true),
+				    #"Added Custom Column" = Table.AddColumn(#"Filtered Rows", "Custom", each let splitProduct = List.Reverse(Splitter.SplitTextByDelimiter(" ", QuoteStyle.None)([Product])), splitProduct2 = Splitter.SplitTextByDelimiter(" Type ", QuoteStyle.None)([Product]), splitsplitProduct21 = Splitter.SplitTextByDelimiter(", ", QuoteStyle.None)(splitProduct2{1}?) in Text.Combine({splitProduct{2}?, " ", Text.Combine(List.Alternate(splitsplitProduct21, 1, 1, 1), " ")}), type text),
+				    #"Renamed Columns" = Table.RenameColumns(#"Added Custom Column",{{"Custom", "Type"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"Text Between Delimiters", "Product - Copy"}),
+				    #"Trimmed Text2" = Table.TransformColumns(#"Removed Columns",{{"Type", Text.Trim, type text}}),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Trimmed Text2",{"Total"}),
+				    #"Trimmed Text3" = Table.TransformColumns(#"Removed Columns1",{{"Payment Type (cash / credit)", Text.Trim, type text}}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Trimmed Text3",{{"Customer", "CustomerID"}}),
+				    #"Trimmed Text4" = Table.TransformColumns(#"Renamed Columns1",{{"CustomerID", Text.Trim, type text}}),
+				    #"Extracted Text After Delimiter" = Table.TransformColumns(#"Trimmed Text4", {{"CustomerID", each Text.AfterDelimiter(_, " "), type text}}),
+				    #"Trimmed Text5" = Table.TransformColumns(#"Extracted Text After Delimiter",{{"CustomerID", Text.Trim, type text}}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Trimmed Text5",{{"CustomerID", Int64.Type}}),
+				    #"Trimmed Text6" = Table.TransformColumns(#"Changed Type1",{{"Product", Text.Trim, type text}})
+				in
+				    #"Trimmed Text6"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

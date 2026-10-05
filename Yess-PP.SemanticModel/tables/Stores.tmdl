@@ -1,0 +1,144 @@
+/// Справочник розничных магазинов (измерение): город, координаты, торговая площадь, штат продавцов и дата открытия.
+table Stores
+	lineageTag: dfa212c1-74f7-42b5-8c91-ae6fadc90aa1
+
+	column 'Store ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 92ef5360-7088-495e-8c6d-0e99ca47c266
+		summarizeBy: none
+		sourceColumn: Store ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Store Name'
+		dataType: string
+		lineageTag: 73671f06-d961-4ae5-a947-684bb9768039
+		summarizeBy: none
+		sourceColumn: Store Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column City
+		dataType: string
+		lineageTag: dddd9d43-b25e-4578-914c-3c0323dcf91d
+		summarizeBy: none
+		sourceColumn: City
+
+		annotation SummarizationSetBy = Automatic
+
+	column Latitude
+		dataType: double
+		lineageTag: d82ebf95-04e0-437a-8b9b-3c2ca5d8597f
+		summarizeBy: sum
+		sourceColumn: Latitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Longitude
+		dataType: double
+		lineageTag: 73124182-f78c-4c97-87a7-f76c8fdd245f
+		summarizeBy: sum
+		sourceColumn: Longitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Area
+		dataType: int64
+		formatString: 0
+		lineageTag: 2b62a487-b5ae-444c-a157-5bd3991896ed
+		summarizeBy: sum
+		sourceColumn: Area
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Number of sales people'
+		dataType: int64
+		formatString: 0
+		lineageTag: 321d2fc1-7271-4c06-84dd-4061a8a2b1b8
+		summarizeBy: sum
+		sourceColumn: Number of sales people
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Price per square meter'
+		dataType: double
+		lineageTag: 1c218d64-b40b-4e47-b865-2676b75322fe
+		summarizeBy: sum
+		sourceColumn: Price per square meter
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Sum of SalesPlan.Plan'
+		dataType: double
+		lineageTag: d1b3b825-346f-43b4-8593-2167559886e7
+		summarizeBy: sum
+		sourceColumn: Sum of SalesPlan.Plan
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column StoreSize
+		dataType: string
+		lineageTag: f09321b4-ae33-4e1a-a11d-414bdd5c7d2f
+		summarizeBy: none
+		sourceColumn: StoreSize
+
+		annotation SummarizationSetBy = Automatic
+
+	column NumberOfCheckOuts
+		dataType: int64
+		formatString: 0
+		lineageTag: 078a30c6-aadd-43ce-ae10-6709b1b23d77
+		summarizeBy: sum
+		sourceColumn: NumberOfCheckOuts
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateOpened
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 063b2afd-13eb-4d15-8b8f-162fe3a4b0de
+		summarizeBy: none
+		sourceColumn: DateOpened
+
+		variation Variation
+			isDefault
+			relationship: c0954761-1b63-4d6f-8ef3-7e31e76d9f8d
+			defaultHierarchy: LocalDateTable_ce0ebe41-2914-427c-aec3-8ed7430b9a21.'Иерархия дат'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Stores-354570c9-442e-45a3-a83c-ee36ccd6d86a = m
+		mode: import
+		queryGroup: 'Stores Group'
+		source =
+				let
+				    Источник = Excel.Workbook(File.Contents("C:\Users\B.Yessenova\Desktop\MS Power BI\W1\ElectronicsCompanyData.xlsx"), null, true),
+				    Stores_Sheet = Источник{[Item="Stores",Kind="Sheet"]}[Data],
+				    #"Повышенные заголовки" = Table.PromoteHeaders(Stores_Sheet, [PromoteAllScalars=true]),
+				    #"Измененный тип" = Table.TransformColumnTypes(#"Повышенные заголовки",{{"Store ID", Int64.Type}, {"Store Name", type text}, {"City", type text}, {"Latitude", type number}, {"Longitude", type number}, {"Area", Int64.Type}, {"Number of sales people", Int64.Type}, {"Price per square meter", type number}}),
+				    #"Merged Queries" = Table.NestedJoin(#"Измененный тип", {"Store ID"}, SalesPlan, {"Store ID"}, "SalesPlan", JoinKind.LeftOuter),
+				    #"Aggregated SalesPlan" = Table.AggregateTableColumn(#"Merged Queries", "SalesPlan", {{"Plan", List.Sum, "Sum of SalesPlan.Plan"}}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Aggregated SalesPlan", {"Store ID"}, storeinfo, {"Store_ID"}, "storeinfo", JoinKind.LeftOuter),
+				    #"Expanded storeinfo" = Table.ExpandTableColumn(#"Merged Queries1", "storeinfo", {"StoreSize", "NumberOfCheckOuts", "DateOpened"}, {"StoreSize", "NumberOfCheckOuts", "DateOpened"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded storeinfo",{{"Price per square meter", type number}, {"Sum of SalesPlan.Plan", type number}}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type",{"Store ID", "Store Name", "City", "Latitude", "Longitude", "StoreSize", "Area", "Number of sales people", "Price per square meter", "Sum of SalesPlan.Plan", "NumberOfCheckOuts", "DateOpened"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Reordered Columns",{"StoreSize"}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Removed Columns", "StoreSize", each if [Area] < 1500 then "Small" else if [Area] > 3000 then "Large" else "Medium")
+				in
+				    #"Added Conditional Column"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

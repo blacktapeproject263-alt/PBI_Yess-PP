@@ -1,0 +1,66 @@
+model Model
+	culture: ru-RU
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: ru-KZ
+	dataAccessOptions
+		fastCombine
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 'OPEX Group'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Transform File from PurchasesNewSystem'
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 'Transform File from PurchasesNewSystem\Helper Queries'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Purchases Group'
+
+	annotation PBI_QueryGroupOrder = 3
+
+queryGroup 'Employee Group'
+
+	annotation PBI_QueryGroupOrder = 4
+
+queryGroup 'Stores Group'
+
+	annotation PBI_QueryGroupOrder = 5
+
+queryGroup 'Customer Group'
+
+	annotation PBI_QueryGroupOrder = 6
+
+annotation PBI_QueryOrder = ["Products","Sales","Stores","storeinfo","SalesPlan","OPEX2017","OPEX2018","OPEX2019","OPEX2020","OPEX","PurchasesNewSystem","Parameter1","Transform Sample File","Sample File","Transform File","PurchasesOld System","Purchases","EmployeeName","Employee","Department","Employees","Table 1","Invoice","Customer Info","CustomerDetails","dimCustomers","PersonEmployees","Operations","MeasureTable","currency","dimCurrency"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["MCP-PBIModeling"]
+
+ref table Products
+ref table DateTableTemplate_62c1265e-b9c1-4e9b-90ee-37edba9a7549
+ref table Sales
+ref table LocalDateTable_ad47bb57-65aa-4e25-84c5-ee401b126434
+ref table Stores
+ref table OPEX
+ref table Calendar
+ref table SalesPlan
+ref table Purchases
+ref table Employees
+ref table LocalDateTable_ce0ebe41-2914-427c-aec3-8ed7430b9a21
+ref table dimCustomers
+ref table PersonEmployees
+ref table LocalDateTable_d7722dd6-4c37-433e-885b-f572b9483913
+ref table Operations
+ref table MeasureTable
+ref table currency
+ref table LocalDateTable_ee1f8775-650b-451e-95f4-192f5d43fed4
+ref table dimCurrency
+ref table 'Sales Mult'
+
+ref cultureInfo ru-RU
+

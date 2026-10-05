@@ -1,0 +1,34 @@
+table dimCurrency
+	lineageTag: 1d690b80-3b9b-43e2-84a4-c5c369f35862
+
+	measure SelectedCurrency = "Selected Currency: " & SELECTEDVALUE(dimCurrency[symbol])
+		lineageTag: 31212e07-91a4-452c-933c-3f1fe2366f34
+
+	column Currency
+		dataType: string
+		lineageTag: 768b1b92-600c-468b-bb00-afe8f55d4108
+		summarizeBy: none
+		sourceColumn: Currency
+
+		annotation SummarizationSetBy = Automatic
+
+	column symbol
+		dataType: string
+		lineageTag: 946191d6-6d16-4e13-9e26-25c49d3bd8a2
+		summarizeBy: none
+		sourceColumn: symbol
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dimCurrency-5a1bf0a3-d360-45f5-901b-eabca0a0382b = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45W8o4KUdJRetS0QylWJ1opNNgFyFNRio0FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Currency = _t, Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Currency", type text}, {"Column1", type text}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"Column1", "symbol"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Yess-PP"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "2649f121-8956-4e03-a4a4-9780468a2522"
+  }
+}

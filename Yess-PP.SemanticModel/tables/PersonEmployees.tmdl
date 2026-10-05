@@ -1,0 +1,39 @@
+table PersonEmployees
+	lineageTag: ca375510-bff5-462f-b647-7ddc56ef87a1
+
+	column FirstName
+		dataType: string
+		lineageTag: 129a9f8f-5492-414b-8815-7b8879014c5e
+		summarizeBy: none
+		sourceColumn: FirstName
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastName
+		dataType: string
+		lineageTag: e0a43615-693b-4c1d-8485-a9d209c7304b
+		summarizeBy: none
+		sourceColumn: LastName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonType
+		dataType: string
+		lineageTag: e5442c8f-722b-49c8-942d-b827a3b1c46d
+		summarizeBy: none
+		sourceColumn: PersonType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition PersonEmployees-6d8a3fae-07d0-464a-86a5-da8097f7c82a = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("bidatabase.ctoqi0ygecd7.eu-central-1.rds.amazonaws.com", "adventureworks", [Query="select #(lf)      FirstName,#(lf)      LastName,#(lf)      PersonType #(lf) from Person.Person#(lf)Where FirstName like 'A%'#(lf)  and PersonType = 'EM'"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

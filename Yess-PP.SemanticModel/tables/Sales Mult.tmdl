@@ -1,0 +1,23 @@
+table 'Sales Mult'
+	lineageTag: c9def50d-3037-436d-accc-a54bc0a06155
+
+	measure 'Sales Mult Value' = SELECTEDVALUE('Sales Mult'[Sales Mult])
+		formatString: 0
+		lineageTag: 16606a3b-7d9d-421e-bd15-38465f158ba3
+
+	column 'Sales Mult'
+		formatString: 0
+		lineageTag: 41411689-0d1b-4fe1-b386-40b849be51aa
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata = {"version":0}
+
+		annotation SummarizationSetBy = User
+
+	partition 'Sales Mult-6d316584-810f-421e-bc07-a2895ad2946a' = calculated
+		mode: import
+		source = GENERATESERIES(460, 500, 1)
+
+	annotation PBI_Id = dc451ce42c9c49448c0f59635adc82ca
+

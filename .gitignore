@@ -1,0 +1,27 @@
+# Power BI & Microsoft Fabric ignore rules
+.pbi/localSettings.json
+*.tmp
+*.temp
+*~
+~$*.xlsx
+~$*.docx
+~$*.pptx
+AutoRecovery*
+
+# Large Archive Files (unzipped versions are tracked in folders)
+*.7z
+*.zip
+*.rar
+
+# OS specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Logs
+*.log
+# Scratch directory
+scratch/
+

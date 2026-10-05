@@ -1,0 +1,57 @@
+/// Таблица операционных расходов компании в разрезе дат, категорий и подкатегорий затрат.
+table OPEX
+	lineageTag: 1cdeb0ad-9333-47f3-8431-49de28815a00
+
+	column Category
+		dataType: string
+		lineageTag: e031a0cd-d240-4846-b3bf-e6cb2fe43bbb
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Subcategory
+		dataType: string
+		lineageTag: 1b02816c-5792-4e1a-a044-0bb84aa96f2d
+		summarizeBy: none
+		sourceColumn: Subcategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: eb958e55-dc6b-4d38-9671-fa7227d5ed9e
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column OPEX
+		dataType: int64
+		formatString: 0
+		lineageTag: 082697a2-58e1-4db6-b1e1-7060b8e96973
+		summarizeBy: sum
+		sourceColumn: OPEX
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition OPEX-8ae5a69d-cb2b-4202-8803-b622cd73890e = m
+		mode: import
+		queryGroup: 'OPEX Group'
+		source =
+				let
+				    Source = Table.Combine({OPEX2017, OPEX2018, OPEX2019, OPEX2020}),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"Month", "Date"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

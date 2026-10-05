@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Inderbayev_week1_part1"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "0a34e0c5-e5e9-47e7-bd85-bdb3c17ae582"
+  }
+}

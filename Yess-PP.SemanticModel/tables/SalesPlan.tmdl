@@ -1,0 +1,126 @@
+/// Таблица плановых показателей продаж в разрезе магазинов и дат.
+table SalesPlan
+	lineageTag: 69e41b4e-d1e4-4d0a-9960-7d5ec7fba0eb
+
+	/// Общий плановый объем продаж за выбранный период.
+	measure '1.SalesPlan' = sum(SalesPlan[Plan])
+		formatString: #,0
+		lineageTag: f635de7a-d603-4335-acde-05ad388f8703
+
+		changedProperty = FormatString
+
+	/// Минимальное значение плана продаж среди выбранных срезов.
+	measure '2. MinSalesPlan' = min(SalesPlan[Plan])
+		lineageTag: 36fd8cb8-bca2-42c1-9591-84a7cef1c6ff
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Максимальное значение плана продаж среди выбранных срезов.
+	measure '3. MaxSalesPlan' = max(SalesPlan[Plan])
+		lineageTag: e16aaefe-ad44-4205-82e3-12c272f0f31d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Средний плановый показатель продаж на период/магазин.
+	measure '4. AverageSalesPlan' = AVERAGE(SalesPlan[Plan])
+		lineageTag: 3d069401-92ff-464f-85ca-8c75a821b395
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '51.PreviousMonthSalesPlan' = CALCULATE([1.SalesPlan], PREVIOUSMONTH('Calendar'[Date]))
+		lineageTag: ef878d28-ff82-4b69-b5c7-37e969fb9a98
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// План продаж нарастающим итогом с начала года (YTD).
+	measure '52.SalesPlanYTD' = CALCULATE([1.SalesPlan], DATESYTD('Calendar'[Date]))
+		lineageTag: 3581ef9a-8442-4709-ba5b-7a2d1a5f3799
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '53.SalesPlanFYTD' = CALCULATE([1.SalesPlan], DATESYTD('Calendar'[Date], "6-30"))
+		lineageTag: d099c08b-3816-4daa-bf9c-fdbe8da66a57
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '55.SalesPlan2MonthAgo' = CALCULATE([1.SalesPlan], DATEADD('Calendar'[Date], -2, MONTH))
+		lineageTag: 5f8b3ad0-f03f-4477-bebe-03a1537c0a36
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '54.SalesPlanSPLY' = CALCULATE([1.SalesPlan], SAMEPERIODLASTYEAR('Calendar'[Date]))
+		lineageTag: 4c2887d6-e808-4c83-91f2-5a5cef8d2aab
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '12.SalesPlanMulticurr' = if(SELECTEDVALUE(dimCurrency[symbol]) = "$", [1.SalesPlan], [11.SalesPlanKZT])
+		formatString: #,0
+		lineageTag: 3c3d161c-8356-4133-bf79-65ca619f1ee3
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure '11.SalesPlanKZT' = SUMX(SalesPlan, SalesPlan[Plan] * RELATED('Calendar'[KZT]))
+		lineageTag: 5efa94c1-3be0-40ce-a14b-63f7ea9615e6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 64905735-69e0-47fd-84d2-3f1540d61b1b
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Plan
+		dataType: double
+		lineageTag: 9e4d2209-bc9a-4a0b-ac84-72a2a40a8f12
+		summarizeBy: sum
+		sourceColumn: Plan
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Store ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: b18bf0d5-6345-4e66-96e8-736b58210ab0
+		summarizeBy: none
+		sourceColumn: Store ID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition SalesPlan-55d7a9a0-1ceb-444b-8730-c27fd53739f9 = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\Users\B.Yessenova\Desktop\MS Power BI\W4\SalesPlanNew_week4.xlsx"), null, true),
+				    Plan20162020_Sheet = Source{[Item="Plan20162020",Kind="Sheet"]}[Data],
+				    #"Removed Top Rows" = Table.Skip(Plan20162020_Sheet,3),
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Promoted Headers",{"Column1", "01.01.2016", "01.02.2016", "01.03.2016", "01.04.2016", "01.05.2016", "01.06.2016", "01.07.2016", "01.08.2016", "01.09.2016", "01.10.2016", "01.11.2016", "01.12.2016", "01.01.2017", "01.02.2017", "01.03.2017", "01.04.2017", "01.05.2017", "01.06.2017", "01.07.2017", "01.08.2017", "01.09.2017", "01.10.2017", "01.11.2017", "01.12.2017", "01.01.2018", "01.02.2018", "01.03.2018", "01.04.2018", "01.05.2018", "01.06.2018", "01.07.2018", "01.08.2018", "01.09.2018", "01.10.2018", "01.11.2018", "01.12.2018", "01.01.2019", "01.02.2019", "01.03.2019", "01.04.2019", "01.05.2019", "01.06.2019", "01.07.2019", "01.08.2019", "01.09.2019", "01.10.2019", "01.11.2019", "01.12.2019", "01.01.2020", "01.02.2020", "01.03.2020", "01.04.2020", "01.05.2020", "01.06.2020", "01.07.2020", "01.08.2020", "01.09.2020", "01.10.2020", "01.11.2020", "01.12.2020"}),
+				    #"Unpivoted Other Columns1" = Table.UnpivotOtherColumns(#"Removed Other Columns", {"Column1"}, "Attribute", "Value"),
+				    #"Filtered Rows" = Table.SelectRows(#"Unpivoted Other Columns1", each not Text.Contains([Column1], "Total")),
+				    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each not Text.Contains([Attribute], "Total")),
+				    #"Renamed Columns" = Table.RenameColumns(#"Filtered Rows1",{{"Column1", "StoreID"}, {"Attribute", "Date"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Date", type date}, {"Value", type number}}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Changed Type",{{"Value", "Plan"}}),
+				    #"Split Column by Character Transition" = Table.SplitColumn(#"Renamed Columns1", "StoreID", Splitter.SplitTextByCharacterTransition((c) => not List.Contains({"0".."9"}, c), {"0".."9"}), {"StoreID.1", "StoreID.2"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Split Column by Character Transition",{"StoreID.1"}),
+				    #"Renamed Columns2" = Table.RenameColumns(#"Removed Columns",{{"StoreID.2", "Store ID"}}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns2",{{"Store ID", Int64.Type}}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Changed Type1", "Plan", "Plan - Copy"),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Duplicated Column",{"Plan - Copy"})
+				in
+				    #"Removed Columns1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

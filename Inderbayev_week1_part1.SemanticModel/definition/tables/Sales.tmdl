@@ -1,0 +1,142 @@
+table Sales
+	lineageTag: c6c7dcd6-f0f3-444e-9294-154927cc0444
+
+	column 'Receipt Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: f1383195-10d9-46a7-b90d-f30e00ad1025
+		summarizeBy: sum
+		sourceColumn: Receipt Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 2724ef9a-ccb7-4be7-b391-80c41c0f3a5b
+		summarizeBy: none
+		sourceColumn: Date
+
+		variation Variation
+			isDefault
+			relationship: 1eafd07b-3fff-487a-9f55-9df823fc28ba
+			defaultHierarchy: LocalDateTable_ed024a33-3156-4ad9-9c0f-34ae00069c97.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 1f260865-ff22-4fd8-8836-dab2a7805641
+		summarizeBy: none
+		sourceColumn: Time
+
+		variation Variation
+			isDefault
+			relationship: 7585a683-ca33-4e90-8546-ad802ed9e951
+			defaultHierarchy: LocalDateTable_39c0e9e2-72f1-4cd7-848b-baaae2405cbc.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Product
+		dataType: string
+		lineageTag: 47c933b3-7e84-4595-8758-d2d69b581dae
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: int64
+		formatString: 0
+		lineageTag: b2f9c17b-2c30-4063-aa79-dc7465e638cb
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Price $/each'
+		dataType: int64
+		formatString: 0
+		lineageTag: fa16758a-c349-42d0-995a-5c65194e909d
+		summarizeBy: sum
+		sourceColumn: Price $/each
+
+		annotation SummarizationSetBy = Automatic
+
+	column Total
+		dataType: int64
+		formatString: 0
+		lineageTag: 421cd600-63b3-4c5b-806a-d6f29d505c96
+		summarizeBy: sum
+		sourceColumn: Total
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Payment Type (cash / credit)'
+		dataType: string
+		lineageTag: 57734957-54e0-448f-b904-57a0bf862ed6
+		summarizeBy: none
+		sourceColumn: Payment Type (cash / credit)
+
+		annotation SummarizationSetBy = Automatic
+
+	column Customer
+		dataType: string
+		lineageTag: 7add8784-a561-4333-a34d-e2c54f77b229
+		summarizeBy: none
+		sourceColumn: Customer
+
+		annotation SummarizationSetBy = Automatic
+
+	column Store
+		dataType: int64
+		formatString: 0
+		lineageTag: 1ceea457-b174-4f40-ad88-3b07134541c8
+		summarizeBy: none
+		sourceColumn: Store
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cost of goods'
+		dataType: int64
+		formatString: 0
+		lineageTag: 60b1bc8c-0de0-431a-ada4-501c62436b9d
+		summarizeBy: sum
+		sourceColumn: Cost of goods
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Shipment date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 1c25d261-91fd-4c80-a58c-c79235f94dd8
+		summarizeBy: none
+		sourceColumn: Shipment date
+
+		variation Variation
+			isDefault
+			relationship: 9415899f-3f22-4d0b-b007-f35704301ea2
+			defaultHierarchy: LocalDateTable_7447bb62-c1f2-43bf-9836-3f0e6c6cf618.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Sales-22771bfe-e173-4963-afbd-d50df4a859da = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\Users\root\Desktop\PBI kurs\Week1\ElectronicsCompanyData.xlsx"), null, true),
+				    Sales_Sheet = Source{[Item="Sales",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(Sales_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Receipt Number", Int64.Type}, {"Date", type date}, {"Time", type datetime}, {"Product", type text}, {"Quantity", Int64.Type}, {"Price $/each", Int64.Type}, {"Total", Int64.Type}, {"Payment Type (cash / credit)", type text}, {"Customer", type text}, {"Store", Int64.Type}, {"Cost of goods", Int64.Type}, {"Shipment date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

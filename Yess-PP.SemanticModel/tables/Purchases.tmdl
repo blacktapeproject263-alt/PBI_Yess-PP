@@ -1,0 +1,102 @@
+/// Таблица фактов закупки и перемещения товаров поставщиками по складам и магазинам.
+table Purchases
+	lineageTag: 9bf287e5-6a72-4971-bd3a-4baca22f9ab3
+
+	/// Общее количество закупленного товара.
+	measure 'Purchase Quantity' = sum(Purchases[Quantity])
+		lineageTag: 8efec326-1303-45a8-bd27-8881b07978c9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Суммарная стоимость закупленных товаров по себестоимости закупки.
+	measure Продажа = SUMX(Purchases, Purchases[Cost Price]*Purchases[Quantity])
+		lineageTag: 85e70a18-6e54-4e5c-83a9-0d67e97d76b0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Invoice #'
+		dataType: int64
+		formatString: 0
+		lineageTag: 172e744c-4fca-43f2-b108-e67c01e1ac9b
+		summarizeBy: sum
+		sourceColumn: Invoice #
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f6204a74-d91a-4587-8bde-c5bd99842359
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Operation Type (purchase / relocation)'
+		dataType: string
+		lineageTag: 3f51fe36-54ca-4f8d-ae31-23e1b7c78f75
+		summarizeBy: none
+		sourceColumn: Operation Type (purchase / relocation)
+
+		annotation SummarizationSetBy = Automatic
+
+	column Product
+		dataType: string
+		lineageTag: a7176019-21c5-41c8-a200-ef9093d0622a
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: double
+		lineageTag: 13158627-8c46-46b7-b8fb-2bdf65b84fca
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Cost Price'
+		dataType: double
+		formatString: 0
+		lineageTag: cfaee216-98af-4ac4-99c6-633c969a75bd
+		summarizeBy: sum
+		sourceColumn: Cost Price
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Supplier Type'
+		dataType: string
+		lineageTag: b9e15d7f-7f28-4cf1-bfd8-ee052a650952
+		summarizeBy: none
+		sourceColumn: Supplier Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Store
+		dataType: int64
+		formatString: 0
+		lineageTag: 2b208bbc-2548-461f-a712-a15d9fb7d333
+		summarizeBy: none
+		sourceColumn: Store
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Purchases-b8548697-e690-4719-be70-93f3c53fd1ab = m
+		mode: import
+		queryGroup: 'Purchases Group'
+		source =
+				let
+				    Source = Table.Combine({#"PurchasesOld System", PurchasesNewSystem}),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Quantity", type number}, {"Cost Price", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

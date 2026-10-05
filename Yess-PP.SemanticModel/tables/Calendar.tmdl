@@ -1,0 +1,150 @@
+/// Вычисляемая таблица календаря для анализа временных рядов (Time Intelligence) и сопоставления факта с планом.
+table Calendar
+	lineageTag: cadb3eab-0ef1-43b6-be63-ba0d5ba81178
+
+	column Date
+		formatString: Long Date
+		lineageTag: 16d5bf09-1e81-403e-a000-fe91884cc0c7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		variation Variation
+			isDefault
+			relationship: 3e036449-14c5-4399-8159-1820ca607b15
+			defaultHierarchy: LocalDateTable_d7722dd6-4c37-433e-885b-f572b9483913.'Иерархия дат'
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Year
+		formatString: 0
+		lineageTag: 0be9875d-c88e-4789-9b52-8b8a9e0b1475
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNumber
+		formatString: 0
+		lineageTag: 02b5da39-7bf3-4548-9ccc-1001ca8b3a0e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [MonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		lineageTag: 89629d6f-91be-45d4-8038-2db2d5ac695b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Month]
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearMonth
+		lineageTag: 82b95502-09cf-4bbb-b089-ad9c85d0346c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [YearMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		lineageTag: d60e82b5-5017-4dbb-896f-6faf4907abac
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Quarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeekDayNum
+		formatString: 0
+		lineageTag: 2b9a9f92-ab28-409d-85bb-665e4d332fcf
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [WeekDayNum]
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeekDayEngShort
+		lineageTag: ac86c4b9-1d1a-4ceb-b6da-673ab6373cc5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [WeekDayEngShort]
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeekDayRuShort
+		lineageTag: 04720cb5-219a-4398-82b5-ee8f7974b65f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [WeekDayRuShort]
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkDayEng
+		lineageTag: 3f768dc4-8624-4cd2-b6c4-079269f2667b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [WorkDayEng]
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkDayRu
+		lineageTag: 4c1dc264-4f7e-4cda-ab64-3a114f2adfcb
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [WorkDayRu]
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeekNumber
+		formatString: 0
+		lineageTag: 59d523ff-2829-4ce3-97f2-692d648d7f32
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [WeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column KZT = LOOKUPVALUE('currency'[rate], 'currency'[date], 'Calendar'[Date])
+		formatString: 0
+		lineageTag: 70d4010c-58fb-4820-a18d-5491078841ec
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Calendar-0eed4922-9688-44ee-8e1e-c006a7300091 = calculated
+		mode: import
+		source = ```
+				ADDCOLUMNS(
+				CALENDAR(date(year(min(min('SalesPlan'[Date]), min(Sales[Date]))),1,1),
+				DATE(year(max(max(Sales[Shipment date]),max(Sales[Date]))),12,31)), 
+				"Year", year([Date]),
+				"MonthNumber",  month([Date]),
+				"Month", format([Date], "mmmm"), 
+				"YearMonth", FORMAT([Date], "yyyy-mm"),
+				"Quarter", "Qtr " & FORMAT([Date], "q"),
+				"WeekDayNum", WEEKDAY([Date], 2),
+				"WeekDayEngShort", 
+				IF(WEEKDAY([Date], 2) = 1, "Mon",
+				IF(WEEKDAY([Date], 2) = 2, "Tue",
+				IF(WEEKDAY([Date], 2) = 3, "Wed",
+				IF(WEEKDAY([Date], 2) = 4, "Thu",
+				IF(WEEKDAY([Date], 2) = 5, "Fri",
+				IF(WEEKDAY([Date], 2) = 6, "Sat","Sun"
+				)))))), 
+				"WeekDayRuShort", SWITCH(WEEKDAY([Date], 2), 1,"ПН",2,"ВТ", 3, "СР", 4, "ЧТ", 5, "ПТ", 6, "СБ", "ВС" ),
+				"WorkDayEng", SWITCH(WEEKDAY([Date], 2), 6, "weekend", 7, "weekend", "workday"),
+				"WorkDayRu", if(WEEKDAY([Date], 2) = 6 ||WEEKDAY([Date], 2) = 7, "выходной", "будний"),
+				"WeekNumber", WEEKNUM([Date],2)
+				)
+				```
+
+	annotation PBI_Id = edd652a2582c4a429f1c1a27720b7e9a
+

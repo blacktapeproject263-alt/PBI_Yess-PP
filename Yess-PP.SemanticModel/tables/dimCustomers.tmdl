@@ -1,0 +1,157 @@
+/// Справочник клиентов (измерение): пол, род занятий, дата рождения, возрастные группы и контакты.
+table dimCustomers
+	lineageTag: 05565a63-fe22-4ee4-9e19-971d9684c24b
+
+	/// Количество клиентов мужского пола.
+	measure CountOfMale = CALCULATE(COUNT(dimCustomers[CustomerID]), dimCustomers[Gender] = "M")
+		formatString: 0
+		lineageTag: ced9d199-1fae-4f6e-83ed-bbac6068a7ba
+
+	/// Количество клиентов женского пола.
+	measure CountOfFemale = CALCULATE(COUNT(dimCustomers[CustomerID]), dimCustomers[Gender] = "F")
+		formatString: 0
+		lineageTag: dd8aa489-d76f-43af-b892-dea20485e836
+
+	column CustomerID
+		dataType: int64
+		formatString: 0
+		lineageTag: 29f40e43-b5c1-4264-9247-7937e3680da5
+		summarizeBy: none
+		sourceColumn: CustomerID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Customer
+		dataType: string
+		lineageTag: 7d069f35-d5a3-4480-97d4-5c4f50e63d7c
+		summarizeBy: none
+		sourceColumn: Customer
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Phone Number'
+		dataType: string
+		lineageTag: d0e7c8a3-5e3f-46de-bafe-091d1dcecda6
+		summarizeBy: none
+		sourceColumn: Phone Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gender
+		dataType: string
+		lineageTag: 15fe9741-3b51-4cf4-838b-563188b78444
+		summarizeBy: none
+		sourceColumn: Gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column Occupation
+		dataType: string
+		lineageTag: b8f55928-4126-435f-a128-7da1acf4baa8
+		summarizeBy: none
+		sourceColumn: Occupation
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date_of_birth
+		dataType: int64
+		formatString: 0
+		lineageTag: 5ad162e3-e970-4840-8fe2-17297d849402
+		summarizeBy: none
+		sourceColumn: Date_of_birth
+
+		annotation SummarizationSetBy = Automatic
+
+	column Source
+		dataType: string
+		lineageTag: 74054da3-a9ab-4441-b221-82410b972159
+		summarizeBy: none
+		sourceColumn: Source
+
+		annotation SummarizationSetBy = Automatic
+
+	column Age = year(TODAY()) - dimCustomers[Date_of_birth]
+		formatString: 0
+		lineageTag: 3af427b0-a4b3-46e4-951d-e56a2ad0437d
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation __PBI_SemanticLinks = [{"LinkTarget":{"TableName":"dimCustomers","TableItemName":"Age (groups)","ObjectType":4},"LinkType":"UsedInGroup"}]
+
+	column AgeGroup =
+			if(dimCustomers[Age] <= 45, "young",
+			if(dimCustomers[Age] > 45 && dimCustomers[Age] <= 55, "mature", "old"))
+		lineageTag: f0cf35c1-1d92-40f2-8314-312cde92cee9
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age (groups)' =
+			SWITCH(
+			  TRUE,
+			  ISBLANK('dimCustomers'[Age]),
+			  "(Blank)",
+			  'dimCustomers'[Age] IN {46,
+			    47,
+			    48,
+			    49,
+			    50,
+			    51,
+			    52,
+			    53,
+			    54,
+			    55},
+			  "mature",
+			  'dimCustomers'[Age] IN {56,
+			    57,
+			    58,
+			    59,
+			    60,
+			    61,
+			    62},
+			  "old",
+			  'dimCustomers'[Age] IN {30,
+			    31,
+			    32,
+			    33,
+			    34,
+			    35,
+			    36,
+			    37,
+			    38,
+			    39,
+			    40,
+			    41,
+			    42,
+			    43,
+			    44,
+			    45},
+			  "young",
+			  "Other"
+			)
+		formatString: 0
+		lineageTag: d7f47de8-6fee-4ac8-af78-27f0591936e3
+		summarizeBy: none
+
+		extendedProperty GroupingMetadata = {"version":0,"groupedColumns":[{"Column":{"Expression":{"SourceRef":{"Entity":"dimCustomers"}},"Property":"Age"}}]}
+
+		annotation GroupingDesignState = {"Version":0,"Sources":[{"Name":"d","Entity":"dimCustomers"}],"GroupedColumns":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Age"}}],"GroupItems":[{"DisplayName":"(Blank)","BlankDefaultPlaceholder":true},{"DisplayName":"mature","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Age"}}],"Values":[[{"Literal":{"Value":"46L"}}],[{"Literal":{"Value":"47L"}}],[{"Literal":{"Value":"48L"}}],[{"Literal":{"Value":"49L"}}],[{"Literal":{"Value":"50L"}}],[{"Literal":{"Value":"51L"}}],[{"Literal":{"Value":"52L"}}],[{"Literal":{"Value":"53L"}}],[{"Literal":{"Value":"54L"}}],[{"Literal":{"Value":"55L"}}]]}}},{"DisplayName":"old","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Age"}}],"Values":[[{"Literal":{"Value":"56L"}}],[{"Literal":{"Value":"57L"}}],[{"Literal":{"Value":"58L"}}],[{"Literal":{"Value":"59L"}}],[{"Literal":{"Value":"60L"}}],[{"Literal":{"Value":"61L"}}],[{"Literal":{"Value":"62L"}}]]}}},{"DisplayName":"young","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Age"}}],"Values":[[{"Literal":{"Value":"30L"}}],[{"Literal":{"Value":"31L"}}],[{"Literal":{"Value":"32L"}}],[{"Literal":{"Value":"33L"}}],[{"Literal":{"Value":"34L"}}],[{"Literal":{"Value":"35L"}}],[{"Literal":{"Value":"36L"}}],[{"Literal":{"Value":"37L"}}],[{"Literal":{"Value":"38L"}}],[{"Literal":{"Value":"39L"}}],[{"Literal":{"Value":"40L"}}],[{"Literal":{"Value":"41L"}}],[{"Literal":{"Value":"42L"}}],[{"Literal":{"Value":"43L"}}],[{"Literal":{"Value":"44L"}}],[{"Literal":{"Value":"45L"}}]]}}},{"DisplayName":"Other"}]}
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dimCustomers-fe0913b8-ba16-4e0d-9f42-97873128c1b9 = m
+		mode: import
+		queryGroup: 'Customer Group'
+		source =
+				let
+				    Source = Table.NestedJoin(CustomerDetails, {"CustomerID"}, #"Customer Info", {"CustomerID"}, "Customer Info", JoinKind.LeftOuter),
+				    #"Expanded Customer Info" = Table.ExpandTableColumn(Source, "Customer Info", {"Customer", "Phone Number"}, {"Customer", "Phone Number"}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Expanded Customer Info",{"CustomerID", "Customer", "Phone Number", "Gender", "Occupation", "Date_of_birth", "Source"})
+				in
+				    #"Reordered Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
